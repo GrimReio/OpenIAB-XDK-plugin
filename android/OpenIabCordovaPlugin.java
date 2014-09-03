@@ -15,7 +15,8 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
 	@Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException 
     {
-        if ("init".equals(action)) {
+        if ("init".equals(action)) 
+        {
             String message = args.getString(0);
             this.init(message, callbackContext);
             callbackContext.success();
@@ -24,7 +25,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
         return false;  // Returning false results in a "MethodNotFound" error.
     }
 
-    private void init(String message, CallbackContext callbackContext) {
+    private void init(String message, CallbackContext callbackContext)
     {
 		if (message != null && message.length() > 0)
             callbackContext.success(message);
