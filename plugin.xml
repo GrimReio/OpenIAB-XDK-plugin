@@ -18,7 +18,7 @@
 
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="OpenIabCordovaPlugin">
-                <param name="android-package" value="org.onepf.openiab.OpenIabCordovaPlugin"/>
+                <param name="android-package" value="org.onepf.openiab.cordova.OpenIabCordovaPlugin"/>
             </feature>
         </config-file>
        
