@@ -18,7 +18,7 @@
             </feature>
         </config-file>
         
-        <js-module src="js/openiab.js" name="openiab">
+        <js-module src="www/openiab.js" name="openiab">
             <clobbers target="onepf" />
         </js-module>
 
