@@ -7,7 +7,12 @@ function log(msg)
 	console.log("OpenIAB-js: " + msg);
 }
 
-exports.init = function(success, error)
+function OpenIAB()
 {
-    exec(success, error, PLUGIN, "init", ["INIT-PARAM"]);
+	this.init = function(success, error)
+	{
+	    exec(success, error, PLUGIN, "init", ["INIT-PARAM"]);
+	} 
 }
+
+exports.init = new OpenIAB();
