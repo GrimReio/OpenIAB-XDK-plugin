@@ -9,6 +9,10 @@
     <author>One Platform Foundation</author>
     <license>Apache 2.0</license>
     <keywords>cordova, billing, android, openiab, inapp</keywords>
+
+    <js-module src="www/openiab.js" name="openiab">
+        <clobbers target="openiab" />
+    </js-module>
     
     <platform name="android">
 
@@ -18,10 +22,6 @@
             </feature>
         </config-file>
        
-        <js-module src="www/openiab.js" name="openiab">
-            <clobbers target="cordova.plugins.openiab" />
-        </js-module>
-
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <!--all-->
             <uses-permission android:name="android.permission.INTERNET"/>
