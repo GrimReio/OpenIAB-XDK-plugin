@@ -10,10 +10,6 @@
     <license>Apache 2.0</license>
     <keywords>cordova, billing, android, openiab, inapp</keywords>
     
-    <engines>
-        <engine name="cordova" version=">=3.0.0" />
-    </engines>
-
     <platform name="android">
 
         <config-file target="res/xml/config.xml" parent="/*">
@@ -21,9 +17,9 @@
                 <param name="android-package" value="org.onepf.openiab.OpenIabCordovaPlugin"/>
             </feature>
         </config-file>
-        
+       
         <js-module src="www/openiab.js" name="openiab">
-            <clobbers target="onepf" />
+            <clobbers target="cordova.plugins.openiab" />
         </js-module>
 
         <config-file target="AndroidManifest.xml" parent="/manifest">
