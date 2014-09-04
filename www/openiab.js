@@ -9,10 +9,11 @@ function log(msg)
 
 function OpenIAB()
 {
-	this.init = function(success, error)
-	{
-	    exec(success, error, PLUGIN, "init", ["INIT-PARAM"]);
-	} 
 }
 
-exports.init = new OpenIAB();
+OpenIAB.prototype.init = function(success, error)
+{
+	exec(success, error, PLUGIN, "init", ["INIT-PARAM"]);
+} 
+
+module.exports = new OpenIAB();
