@@ -46,7 +46,9 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
                     .setDiscoveryTimeout(discoveryTimeout)
                     .setVerifyMode(verifyMode);
 
-            for (JSONArray pair : j.getJSONArray("availableStores")) {
+            JSONArray availableStores = j.getJSONArray("availableStores");
+            for (int i = 0; i < availableStores.length(); ++i) {
+                JSONArray pair = availableStores.get(i);
                 builder.addStoreKey(pair.get(0), pair.get(1));
             }
 
