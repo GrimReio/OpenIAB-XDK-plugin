@@ -6,8 +6,18 @@ import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import org.onepf.oms.OpenIabHelper;
 
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.util.Log;
+import org.onepf.oms.SkuManager;
+import org.onepf.oms.appstore.googleUtils.*;
+import org.onepf.oms.util.Logger;
 import java.util.ArrayList;
 
 
