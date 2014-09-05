@@ -27,7 +27,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
 
     public static final int RC_REQUEST = 10001; /**< (arbitrary) request code for the purchase flow */
 
-    private OpenIabHelper _helper;
+private OpenIabHelper _helper;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException
@@ -49,14 +49,13 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
             JSONArray availableStores = j.getJSONArray("availableStores");
             for (int i = 0; i < availableStores.length(); ++i) {
                 JSONArray pair = availableStores.get(i);
-                builder.addStoreKey(pair.get(0), pair.get(1));
+                builder.addStoreKey(pair.get(0).toString(), pair.get(1).toString());
             }
 
-            ArrayList<String> prefferedStoreNames = new ArrayList<String>();
-            for (JSONObject storeName : j.getJSONArray("preferredStoreNames")) {
-                prefferedStoreNames.add(storeName.toString());
+            JSONArray prefferedStoreNames = j.getJSONArray("preferredStoreNames");
+            for (int i = 0; i < prefferedStoreNames.length(); ++i) {
+                builder.addPreferredStoreName(prefferedStoreNames.get(i).toString());
             }
-            builder.addPreferredStoreName(prefferedStoreNames);
 
             this.init(builder.build(), callbackContext);
             return true;
@@ -67,7 +66,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
     private void init(final OpenIabHelper.Options options, final CallbackContext callbackContext) {
         cordova.getActivity().runOnUiThread(new Runnable() {
             public void run() {
-                _helper = new OpenIabHelper(UnityPlayer.currentActivity, options);
+                _helper = new OpenIabHelper(cordova.getActivity(), options);
                 createBroadcasts();
 
                 // Start setup. This is asynchronous and the specified listener
