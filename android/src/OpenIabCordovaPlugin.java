@@ -48,7 +48,7 @@ private OpenIabHelper _helper;
 
             JSONArray availableStores = j.getJSONArray("availableStores");
             for (int i = 0; i < availableStores.length(); ++i) {
-                JSONArray pair = availableStores.get(i);
+                JSONArray pair = availableStores.getJSONArray(i);
                 builder.addStoreKey(pair.get(0).toString(), pair.get(1).toString());
             }
 
@@ -79,7 +79,7 @@ private OpenIabHelper _helper;
                         if (result.isFailure()) {
                             // Oh noes, there was a problem.
                             Log.e(TAG, "Problem setting up in-app billing: " + result);
-                            callbackContext.error(result.getMessage());
+                            callbackContext.error("HUI " + result.getMessage());
                             return;
                         }
 
