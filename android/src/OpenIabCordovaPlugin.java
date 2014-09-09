@@ -17,17 +17,14 @@ import android.content.IntentFilter;
 import android.util.Log;
 import org.onepf.oms.SkuManager;
 import org.onepf.oms.appstore.googleUtils.*;
-import org.onepf.oms.util.Logger;
-import java.util.ArrayList;
-
 
 public class OpenIabCordovaPlugin extends CordovaPlugin
 {
-    private final String TAG = "OpenIAB-CordovaPlugin";
+    public static final String TAG = "OpenIAB-CordovaPlugin";
 
     public static final int RC_REQUEST = 10001; /**< (arbitrary) request code for the purchase flow */
 
-private OpenIabHelper _helper;
+    private OpenIabHelper _helper;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException
@@ -60,6 +57,21 @@ private OpenIabHelper _helper;
             this.init(builder.build(), callbackContext);
             return true;
         }
+        else if ("purchaseProduct".equals(action))
+        {
+            JSONObject j = args.getJSONObject(0);
+            purchaseProduct(j.getString("sku"), j.getString("payload"), callbackContext);
+        }
+        else if ("purchaseSubscription".equals(action))
+        {
+            JSONObject j = args.getJSONObject(0);
+            purchaseProduct(j.getString("sku"), j.getString("payload"), callbackContext);
+        }
+        else if ("consume".equals(action))
+        {
+            JSONObject j = args.getJSONObject(0);
+            consume(j.getString("sku"), callbackContext);
+        }
         return false;  // Returning false results in a "MethodNotFound" error.
     }
 
@@ -79,7 +91,7 @@ private OpenIabHelper _helper;
                         if (result.isFailure()) {
                             // Oh noes, there was a problem.
                             Log.e(TAG, "Problem setting up in-app billing: " + result);
-                            callbackContext.error("HUI " + result.getMessage());
+                            callbackContext.error(result.getMessage());
                             return;
                         }
 
@@ -93,12 +105,104 @@ private OpenIabHelper _helper;
 
     }
 
-    private void init(String message, CallbackContext callbackContext)
-    {
-        if (message != null && message.length() > 0)
-            callbackContext.success(message);
-        else
-            callbackContext.error("Expected one non-empty string argument.");
+    public void purchaseProduct(final String sku, final String developerPayload, final CallbackContext callbackContext) {
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                _helper.launchPurchaseFlow(cordova.getActivity(), sku, RC_REQUEST, new BillingCallback(callbackContext), developerPayload);
+            }
+        });
+    }
+
+    public void purchaseSubscription(final String sku, final String developerPayload, final CallbackContext callbackContext) {
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                _helper.launchSubscriptionPurchaseFlow(cordova.getActivity(), sku, RC_REQUEST, new BillingCallback(callbackContext), developerPayload);
+            }
+        });
+    }
+
+    private void consume(final String sku, final CallbackContext callbackContext) {
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject jsonObject = new JSONObject();
+                    String appstoreName = jsonObject.getString("appstoreName");
+                    String jsonPurchaseInfo = jsonObject.getString("originalJson");
+                    String packageName = jsonObject.getString("packageName");
+                    String token = jsonObject.getString("token");
+                    Purchase p;
+                    if (jsonPurchaseInfo == null || jsonPurchaseInfo.equals("")) {
+                        p = new Purchase(appstoreName);
+                        p.setSku(jsonObject.getString("sku"));
+                    } else {
+                        String itemType = jsonObject.getString("itemType");
+                        String signature = jsonObject.getString("signature");
+                        p = new Purchase(itemType, jsonPurchaseInfo, signature, appstoreName);
+                    }
+                    p.setPackageName(packageName);
+                    p.setToken(token);
+                    _helper.consumeAsync(p, new BillingCallback(callbackContext));
+                } catch (org.json.JSONException e) {
+                    callbackContext.error(Serialization.billingResultToJson(-1, "Invalid json: " + e));
+                }
+            }
+        });
+    }
+
+    /**
+     * Callback class for when a purchase or consumption process is finished
+     */
+    private static class BillingCallback implements IabHelper.OnIabPurchaseFinishedListener, IabHelper.OnConsumeFinishedListener {
+
+        final CallbackContext _callbackContext;
+
+        public BillingCallback(final CallbackContext callbackContext) {
+            _callbackContext = callbackContext;
+        }
+
+        @Override
+        public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+            Log.d(TAG, "Purchase process finished: " + result + ", purchase: " + purchase);
+            if (result.isFailure()) {
+                Log.e(TAG, "Error purchasing: " + result);
+                _callbackContext.error(Serialization.billingResultToJson(result));
+                return;
+            }
+            Log.d(TAG, "Purchase successful.");
+            JSONObject jsonPurchase;
+            try {
+                jsonPurchase = Serialization.purchaseToJson(purchase);
+            } catch (JSONException e) {
+                _callbackContext.error(Serialization.billingResultToJson(-1, "Couldn't serialize the purchase"));
+                return;
+            }
+            _callbackContext.success(jsonPurchase);
+        }
+
+        @Override
+        public void onConsumeFinished(Purchase purchase, IabResult result) {
+            Log.d(TAG, "Consumption process finished. Purchase: " + purchase + ", result: " + result);
+
+            purchase.setSku(SkuManager.getInstance().getSku(purchase.getAppstoreName(), purchase.getSku()));
+
+            if (result.isFailure()) {
+                Log.e(TAG, "Error while consuming: " + result);
+                _callbackContext.error(Serialization.billingResultToJson(result));
+                return;
+            }
+            Log.d(TAG, "Consumption successful. Provisioning.");
+            JSONObject jsonPurchase;
+            try {
+                jsonPurchase = Serialization.purchaseToJson(purchase);
+            } catch (JSONException e) {
+                _callbackContext.error(Serialization.billingResultToJson(-1, "Couldn't serialize the purchase"));
+                return;
+            }
+            _callbackContext.success(jsonPurchase);
+        }
     }
 
     private void createBroadcasts() {
