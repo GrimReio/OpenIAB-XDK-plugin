@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import org.onepf.oms.OpenIabHelper;
+import org.onepf.oms.appstore.googleUtils.Inventory;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -18,6 +19,9 @@ import android.util.Log;
 import org.onepf.oms.SkuManager;
 import org.onepf.oms.appstore.googleUtils.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class OpenIabCordovaPlugin extends CordovaPlugin
 {
     public static final String TAG = "OpenIAB-CordovaPlugin";
@@ -25,6 +29,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
     public static final int RC_REQUEST = 10001; /**< (arbitrary) request code for the purchase flow */
 
     private OpenIabHelper _helper;
+    private Inventory _inventory;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException
@@ -54,28 +59,41 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
                 builder.addPreferredStoreName(prefferedStoreNames.get(i).toString());
             }
 
-            this.init(builder.build(), callbackContext);
+            List<String> skuList = new ArrayList<String>();
+            if (args.length() > 1) {
+                JSONArray jSkuList = args.getJSONArray(1);
+                int count = jSkuList.length();
+                for (int i = 0; i < count; ++i) {
+                    skuList.add(jSkuList.getString(i));
+                }
+            }
+            init(builder.build(), skuList, callbackContext);
             return true;
         }
         else if ("purchaseProduct".equals(action))
         {
-            JSONObject j = args.getJSONObject(0);
-            purchaseProduct(j.getString("sku"), j.getString("payload"), callbackContext);
+            String sku = args.getString(0);
+            String payload = args.length() > 1 ? args.getString(1) : "";
+            purchaseProduct(sku, payload, callbackContext);
+            return true;
         }
         else if ("purchaseSubscription".equals(action))
         {
-            JSONObject j = args.getJSONObject(0);
-            purchaseProduct(j.getString("sku"), j.getString("payload"), callbackContext);
+            String sku = args.getString(0);
+            String payload = args.length() > 1 ? args.getString(1) : "";
+            purchaseProduct(sku, payload, callbackContext);
+            return true;
         }
         else if ("consume".equals(action))
         {
-            JSONObject j = args.getJSONObject(0);
-            consume(j.getString("sku"), callbackContext);
+            String sku = args.getString(0);
+            consume(sku, callbackContext);
+            return true;
         }
         return false;  // Returning false results in a "MethodNotFound" error.
     }
 
-    private void init(final OpenIabHelper.Options options, final CallbackContext callbackContext) {
+    private void init(final OpenIabHelper.Options options, final List<String> skuList, final CallbackContext callbackContext) {
         cordova.getActivity().runOnUiThread(new Runnable() {
             public void run() {
                 _helper = new OpenIabHelper(cordova.getActivity(), options);
@@ -95,17 +113,29 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
                             return;
                         }
 
-                        // Hooray, IAB is fully set up
-                        Log.d(TAG, "Setup successful.");
-                        callbackContext.success();
+                        Log.d(TAG, "Querying inventory.");
+                        // TODO: this is SHIT! product and subs skus shouldn't be sent two times
+                        _helper.queryInventoryAsync(true, skuList, skuList, new BillingCallback(callbackContext));
                     }
                 });
             }
         });
-
     }
 
-    public void purchaseProduct(final String sku, final String developerPayload, final CallbackContext callbackContext) {
+    private boolean checkInitialized(final CallbackContext callbackContext) {
+        if (_helper == null || _inventory == null)
+        {
+            Log.e(TAG, "Not initialized");
+            callbackContext.error("Not initialized");
+            return false;
+        }
+        return true;
+    }
+
+    private void purchaseProduct(final String sku, final String developerPayload, final CallbackContext callbackContext) {
+        if (!checkInitialized(callbackContext)) return;
+
+        cordova.setActivityResultCallback(this);
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -115,6 +145,9 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
     }
 
     public void purchaseSubscription(final String sku, final String developerPayload, final CallbackContext callbackContext) {
+        if (!checkInitialized(callbackContext)) return;
+
+        cordova.setActivityResultCallback(this);
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -124,30 +157,19 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
     }
 
     private void consume(final String sku, final CallbackContext callbackContext) {
+        if (!checkInitialized(callbackContext)) return;
+
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject jsonObject = new JSONObject();
-                    String appstoreName = jsonObject.getString("appstoreName");
-                    String jsonPurchaseInfo = jsonObject.getString("originalJson");
-                    String packageName = jsonObject.getString("packageName");
-                    String token = jsonObject.getString("token");
-                    Purchase p;
-                    if (jsonPurchaseInfo == null || jsonPurchaseInfo.equals("")) {
-                        p = new Purchase(appstoreName);
-                        p.setSku(jsonObject.getString("sku"));
-                    } else {
-                        String itemType = jsonObject.getString("itemType");
-                        String signature = jsonObject.getString("signature");
-                        p = new Purchase(itemType, jsonPurchaseInfo, signature, appstoreName);
-                    }
-                    p.setPackageName(packageName);
-                    p.setToken(token);
-                    _helper.consumeAsync(p, new BillingCallback(callbackContext));
-                } catch (org.json.JSONException e) {
-                    callbackContext.error(Serialization.billingResultToJson(-1, "Invalid json: " + e));
+                if (!_inventory.hasPurchase(sku))
+                {
+                    callbackContext.error(Serialization.billingResultToJson(-1, "Product haven't been purchased: " + sku));
+                    return;
                 }
+
+                Purchase purchase = _inventory.getPurchase(sku);
+                _helper.consumeAsync(purchase, new BillingCallback(callbackContext));
             }
         });
     }
@@ -155,12 +177,28 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
     /**
      * Callback class for when a purchase or consumption process is finished
      */
-    private static class BillingCallback implements IabHelper.OnIabPurchaseFinishedListener, IabHelper.OnConsumeFinishedListener {
+    public class BillingCallback implements
+            IabHelper.QueryInventoryFinishedListener,
+            IabHelper.OnIabPurchaseFinishedListener,
+            IabHelper.OnConsumeFinishedListener {
 
         final CallbackContext _callbackContext;
 
         public BillingCallback(final CallbackContext callbackContext) {
             _callbackContext = callbackContext;
+        }
+
+        @Override
+        public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
+            Log.d(TAG, "Query inventory process finished.");
+            if (result.isFailure()) {
+                _callbackContext.error(Serialization.billingResultToJson(result));
+                return;
+            }
+
+            Log.d(TAG, "Query inventory was successful. Init finished.");
+            _inventory = inventory;
+            _callbackContext.success();
         }
 
         @Override
@@ -202,6 +240,21 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
                 return;
             }
             _callbackContext.success(jsonPurchase);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "onActivityResult(" + requestCode + ", " + resultCode + ", " + data);
+
+        // Pass on the activity result to the helper for handling
+        if (!_helper.handleActivityResult(requestCode, resultCode, data)) {
+            // not handled, so handle it ourselves (here's where you'd
+            // perform any handling of activity results not related to in-app
+            // billing...
+            super.onActivityResult(requestCode, resultCode, data);
+        } else {
+            Log.d(TAG, "onActivityResult handled by IABUtil.");
         }
     }
 

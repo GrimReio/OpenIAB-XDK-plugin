@@ -14,6 +14,8 @@ import org.onepf.oms.appstore.googleUtils.SkuDetails;
 
 public class Serialization {
 
+    // TODO: define 'error' in JS
+
     /**
      * Serialize purchase data to json
      * @param purchase purchase data
