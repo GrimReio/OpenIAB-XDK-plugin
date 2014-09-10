@@ -2,9 +2,6 @@ package org.onepf.openiab.cordova;
 
 import android.util.Log;
 
-import org.onepf.openiab.cordova.OpenIabCordovaPlugin;
-import com.amazon.inapp.purchasing.PurchaseResponse;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
@@ -13,8 +10,6 @@ import org.onepf.oms.appstore.googleUtils.Purchase;
 import org.onepf.oms.appstore.googleUtils.SkuDetails;
 
 public class Serialization {
-
-    // TODO: define 'error' in JS
 
     /**
      * Serialize purchase data to json
@@ -38,15 +33,15 @@ public class Serialization {
         return j;
     }
 
-    public static JSONObject billingResultToJson(IabResult result) {
-        return billingResultToJson(result.getResponse(), result.getMessage());
+    public static JSONObject errorToJson(IabResult result) {
+        return errorToJson(result.getResponse(), result.getMessage());
     }
 
-    public static JSONObject billingResultToJson(int responseCode, String errorMessage) {
+    public static JSONObject errorToJson(int responseCode, String errorMessage) {
         JSONObject j = new JSONObject();
         try {
-            j.put("responseCode", responseCode);
-            j.put("errorMessage", errorMessage);
+            j.put("code", responseCode);
+            j.put("message", errorMessage);
         } catch (JSONException e) {
             Log.e(OpenIabCordovaPlugin.TAG, e.getMessage());
         }

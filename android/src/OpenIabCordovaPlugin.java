@@ -109,7 +109,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
                         if (result.isFailure()) {
                             // Oh noes, there was a problem.
                             Log.e(TAG, "Problem setting up in-app billing: " + result);
-                            callbackContext.error(result.getMessage());
+                            callbackContext.error(Serialization.errorToJson(result));
                             return;
                         }
 
@@ -164,7 +164,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
             public void run() {
                 if (!_inventory.hasPurchase(sku))
                 {
-                    callbackContext.error(Serialization.billingResultToJson(-1, "Product haven't been purchased: " + sku));
+                    callbackContext.error(Serialization.errorToJson(-1, "Product haven't been purchased: " + sku));
                     return;
                 }
 
@@ -192,7 +192,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
         public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
             Log.d(TAG, "Query inventory process finished.");
             if (result.isFailure()) {
-                _callbackContext.error(Serialization.billingResultToJson(result));
+                _callbackContext.error(Serialization.errorToJson(result));
                 return;
             }
 
@@ -206,7 +206,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
             Log.d(TAG, "Purchase process finished: " + result + ", purchase: " + purchase);
             if (result.isFailure()) {
                 Log.e(TAG, "Error purchasing: " + result);
-                _callbackContext.error(Serialization.billingResultToJson(result));
+                _callbackContext.error(Serialization.errorToJson(result));
                 return;
             }
             Log.d(TAG, "Purchase successful.");
@@ -214,7 +214,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
             try {
                 jsonPurchase = Serialization.purchaseToJson(purchase);
             } catch (JSONException e) {
-                _callbackContext.error(Serialization.billingResultToJson(-1, "Couldn't serialize the purchase"));
+                _callbackContext.error(Serialization.errorToJson(-1, "Couldn't serialize the purchase"));
                 return;
             }
             _callbackContext.success(jsonPurchase);
@@ -228,7 +228,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
 
             if (result.isFailure()) {
                 Log.e(TAG, "Error while consuming: " + result);
-                _callbackContext.error(Serialization.billingResultToJson(result));
+                _callbackContext.error(Serialization.errorToJson(result));
                 return;
             }
             Log.d(TAG, "Consumption successful. Provisioning.");
@@ -236,7 +236,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
             try {
                 jsonPurchase = Serialization.purchaseToJson(purchase);
             } catch (JSONException e) {
-                _callbackContext.error(Serialization.billingResultToJson(-1, "Couldn't serialize the purchase"));
+                _callbackContext.error(Serialization.errorToJson(-1, "Couldn't serialize the purchase"));
                 return;
             }
             _callbackContext.success(jsonPurchase);

@@ -32,8 +32,14 @@ function OpenIAB()
 		preferredStoreNames: [ this.STORE_NAME.GOOGLE, this.STORE_NAME.YANDEX ],
 		availableStores:
 		[
-			[this.STORE_NAME.GOOGLE, 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAm+6Tu90pvu2/pdPCI+xcAEoxExJBDYsstQHGl28FPeuGjVv/vzguk19WqLcAOHptt5ahYB4LD8PugkMXmgCoYTw0WhWz70kplkkiwVsy9mRPJPsk2F1z/y1w176kV6IwdmGKgliRzPLHp2AUo1g+8XrFVF8V9K6n0uVQqfQ5sCEYdRPO+58b5qNG5kJ7wMYCB8ByY/BCddZDM9mbBziYQIxj/u1Wn45ptHzZv/hlxjHXaqB+UJB1uJZS4fw1w80XPwH7gHWbsVJS6d9fpv2S/nwOIcHmQtQ2W7SXJRhFbdHrjtpc/LHGfrB4KEthHl2wolFXepeJUjrkM2t5PN7NIwIDAQAB']
+			[this.STORE_NAME.GOOGLE, 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkxePPiDjF2+Ejs9zZUjp+CFJWt/Ia7ubLy/HtJ4JX6RSrdRN9c9tr2UzzQSG2CkHwhDdovxHY4xD2F71B6Buuhb4/qAfqVx3h96n9VyNivFx45xiDzBX22Zlhz6c/QOCsEh0cvKGGhTmK0zFhvFj7eKqDT+eavKFDyuBboR8k+sPgtDthbcCpZNDu0jVIH032+cdX0IBN+LstNl6+AUA7JKY58hvcOWUYV/Yk4+oddYuhvvnnXIwAIWtuacCc3oFyR4+slCQ4WmSw3Xu7ag93NlRmbofV0+mHZ4lqsqf6xJqxfpw5y8Jcm8cBt9+LESMeur+ZdSnNR54stA/6rXuwwIDAQAB']
 		]
+	}
+
+	this.error =
+	{
+		code:"",
+		message:""
 	}
 }
 
