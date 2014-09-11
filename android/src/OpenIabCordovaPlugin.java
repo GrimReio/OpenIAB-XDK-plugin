@@ -135,6 +135,8 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
     private void purchaseProduct(final String sku, final String developerPayload, final CallbackContext callbackContext) {
         if (!checkInitialized(callbackContext)) return;
 
+        Log.d(TAG, "SKU: " + SkuManager.getInstance().getStoreSku(OpenIabHelper.NAME_GOOGLE, sku));
+
         cordova.setActivityResultCallback(this);
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -231,6 +233,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
                 _callbackContext.error(Serialization.errorToJson(result));
                 return;
             }
+            _inventory.erasePurchase(purchase.getSku());
             Log.d(TAG, "Consumption successful. Provisioning.");
             JSONObject jsonPurchase;
             try {
