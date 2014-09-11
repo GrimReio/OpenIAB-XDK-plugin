@@ -38,9 +38,40 @@ function OpenIAB()
 
 	this.error =
 	{
-		code:"",
+		code:-1,
 		message:""
 	}
+
+	this.purchase =
+	{
+        itemType:null,
+        orderId:null,
+        packageName:null,
+        sku:null,
+        purchaseTime:null,
+        purchaseState:null,
+        developerPayload:null,
+        token:null,
+        originalJson:null,
+        signature:null,
+        appstoreName:null
+	}
+
+	this.skuDetails =
+	{
+		itemType:null,
+        sku:null,
+        type:null,
+        price:null,
+        title:null,
+        description:null,
+        json:null
+	}
+}
+
+OpenIAB.prototype.getSkuDetails = function(success, error, sku)
+{
+	exec(success, error, PLUGIN, "getSkuDetails", [sku]);
 }
 
 OpenIAB.prototype.init = function(success, error, skuList)

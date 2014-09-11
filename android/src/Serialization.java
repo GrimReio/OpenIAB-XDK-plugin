@@ -54,16 +54,15 @@ public class Serialization {
      * @return json string
      * @throws JSONException
      */
-    // TODO: serialize to JSONObject
-    public static String skuDetailsToJson(SkuDetails skuDetails) throws JSONException {
-        return new JSONStringer().object()
-                .key("itemType").value(skuDetails.getItemType())
-                .key("sku").value(skuDetails.getSku())
-                .key("type").value(skuDetails.getType())
-                .key("price").value(skuDetails.getPrice())
-                .key("title").value(skuDetails.getTitle())
-                .key("description").value(skuDetails.getDescription())
-                .key("json").value(skuDetails.getJson())
-                .endObject().toString();
+    public static JSONObject skuDetailsToJson(SkuDetails skuDetails) throws JSONException {
+        JSONObject j = new JSONObject();
+        j.put("itemType", skuDetails.getItemType());
+        j.put("sku", skuDetails.getSku());
+        j.put("type", skuDetails.getType());
+        j.put("price", skuDetails.getPrice());
+        j.put("title", skuDetails.getTitle());
+        j.put("description", skuDetails.getDescription());
+        j.put("json", skuDetails.getJson());
+        return j;
     }
 }

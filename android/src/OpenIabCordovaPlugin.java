@@ -90,7 +90,31 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
             consume(sku, callbackContext);
             return true;
         }
+        else if ("getSkuDetails".equals(action))
+        {
+            String sku = args.getString(0);
+            getSkuDetails(sku, callbackContext);
+            return true;
+        }
         return false;  // Returning false results in a "MethodNotFound" error.
+    }
+
+    private void getSkuDetails(String sku, final CallbackContext callbackContext) {
+        if (!checkInitialized(callbackContext)) return;
+
+        if (!_inventory.hasDetails(sku)) {
+            callbackContext.error(Serialization.errorToJson(-1, "SkuDetails not found: " + sku));
+            return;
+        }
+
+        JSONObject jsonSkuDetails;
+        try {
+            jsonSkuDetails = Serialization.skuDetailsToJson(_inventory.getSkuDetails(sku));
+        } catch (JSONException e) {
+            callbackContext.error(Serialization.errorToJson(-1, "Couldn't serialize SkuDetails: " + sku));
+            return;
+        }
+        callbackContext.success(jsonSkuDetails);
     }
 
     private void init(final OpenIabHelper.Options options, final List<String> skuList, final CallbackContext callbackContext) {
@@ -211,6 +235,7 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
                 _callbackContext.error(Serialization.errorToJson(result));
                 return;
             }
+            _inventory.addPurchase(purchase);
             Log.d(TAG, "Purchase successful.");
             JSONObject jsonPurchase;
             try {
@@ -225,8 +250,6 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
         @Override
         public void onConsumeFinished(Purchase purchase, IabResult result) {
             Log.d(TAG, "Consumption process finished. Purchase: " + purchase + ", result: " + result);
-
-            purchase.setSku(SkuManager.getInstance().getSku(purchase.getAppstoreName(), purchase.getSku()));
 
             if (result.isFailure()) {
                 Log.e(TAG, "Error while consuming: " + result);
