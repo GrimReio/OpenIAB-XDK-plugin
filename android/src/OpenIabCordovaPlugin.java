@@ -16,6 +16,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
+
+import com.squareup.okhttp.internal.StrictLineReader;
+
 import org.onepf.oms.SkuManager;
 import org.onepf.oms.appstore.googleUtils.*;
 
@@ -96,7 +99,19 @@ public class OpenIabCordovaPlugin extends CordovaPlugin
             getSkuDetails(sku, callbackContext);
             return true;
         }
+        else if ("mapSku".equals(action))
+        {
+            String sku = args.getString(0);
+            String storeName = args.getString(1);
+            String storeSku = args.getString(2);
+            mapSku(sku, storeName, storeSku);
+            return true;
+        }
         return false;  // Returning false results in a "MethodNotFound" error.
+    }
+
+    private void mapSku(String sku, String storeName, String storeSku) {
+        SkuManager.getInstance().mapSku(sku, storeName, storeSku);
     }
 
     private void getSkuDetails(String sku, final CallbackContext callbackContext) {

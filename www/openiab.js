@@ -30,10 +30,7 @@ function OpenIAB()
 		checkInventoryTimeout:10 * 1000,
 		verifyMode:this.VERIFY_MODE.SKIP,
 		preferredStoreNames: [ this.STORE_NAME.GOOGLE, this.STORE_NAME.YANDEX ],
-		availableStores:
-		[
-			[this.STORE_NAME.GOOGLE, 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkxePPiDjF2+Ejs9zZUjp+CFJWt/Ia7ubLy/HtJ4JX6RSrdRN9c9tr2UzzQSG2CkHwhDdovxHY4xD2F71B6Buuhb4/qAfqVx3h96n9VyNivFx45xiDzBX22Zlhz6c/QOCsEh0cvKGGhTmK0zFhvFj7eKqDT+eavKFDyuBboR8k+sPgtDthbcCpZNDu0jVIH032+cdX0IBN+LstNl6+AUA7JKY58hvcOWUYV/Yk4+oddYuhvvnnXIwAIWtuacCc3oFyR4+slCQ4WmSw3Xu7ag93NlRmbofV0+mHZ4lqsqf6xJqxfpw5y8Jcm8cBt9+LESMeur+ZdSnNR54stA/6rXuwwIDAQAB']
-		]
+		availableStores: [ [this.STORE_NAME.GOOGLE, 'public_key'] ]
 	}
 
 	this.error =
@@ -67,6 +64,11 @@ function OpenIAB()
         description:null,
         json:null
 	}
+}
+
+OpenIAB.prototype.mapSku = function(success, error, sku, storeName, storeSku)
+{
+	exec(success, error, PLUGIN, "mapSku", [sku, storeName, storeSku]);
 }
 
 OpenIAB.prototype.getSkuDetails = function(success, error, sku)
